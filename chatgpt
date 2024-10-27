@@ -1,0 +1,109 @@
+use sysinfo::{System, SystemExt, CpuExt, DiskExt};
+use colored::*;
+
+/// ASCII logos for different operating systems with colors
+fn get_os_logo(os_name: &str) -> String {
+    match os_name.to_lowercase().as_str() {
+        "ubuntu" => format!(
+            "{}{}{}{}{}{}{}{}",
+            "         ██████████████████  \n".purple(),
+            "        ████████████████████ \n".purple(),
+            "        ████████      ██████\n".blue(),
+            "        ████████      ██████\n".blue(),
+            "        ████████      ██████\n".cyan(),
+            "        ████████      ██████\n".cyan(),
+            "        ████████████████████ \n".purple(),
+            "         ██████████████████  \n".purple(),
+        ),
+        "arch" => format!(
+            "{}{}{}{}{}{}{}{}{}",
+            "           ███████████     \n".cyan(),
+            "       ████▒▒▒▒▒▒▒▒▒▒████ \n".blue(),
+            "      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██\n".cyan(),
+            "     ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██\n".blue(),
+            "    ██▒▒▒▒▒▒▒▒██████▒▒▒▒▒▒▒▒██\n".cyan(),
+            "    ██▒▒▒▒▒▒▒▒██████▒▒▒▒▒▒▒▒██\n".blue(),
+            "     ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██\n".cyan(),
+            "       ████▒▒▒▒▒▒▒▒▒▒▒▒▒▒██\n".blue(),
+            "           ███████████     \n".cyan(),
+        ),
+        "gentoo" => format!(
+            "{}{}{}{}{}{}{}",
+            "⠀⠀⠀⣀⣤⣤⣤⣤⣀⣀⣤⣄⡀⠀⠀⠀⠀⠀⠀\n".purple(),
+            "⠀⣴⠟⠋⠀⠀⠀⠀⠀⠉⠙⠻⢦⡀⠀⠀⠀\n".blue(),
+            "⠀⢠⠎⠀⠀⠀⣠⠤⠖⠶⢦⣤⣀⠈⢧⠀⠀⠀\n".cyan(),
+            "⠀⢸⠀⠀⢀⡼⠁⠀⠀⠀⠀⠀⠙⠿⣦⠙⢦⡀\n".purple(),
+            "⠀⢸⠀⢠⠏⠀⠀⣀⡀⠀⠒⠒⠀⢀⣈⣳⠀⠹⡄\n".blue(),
+            "⠀⠸⣶⡎⠀⠈⠙⠛⢿⣿⠿⠶⠦⠤⠤⠴⢿⡆\n".cyan(),
+            "⠀⠈⠻⣶⣄⣀⣀⡀⠀⠀⠀⠀⠀⠀⠙⠻⣧⠀\n".purple(),
+        ),
+        "linux" => format!(
+            "{}{}{}{}{}{}{}{}",
+            "         ██████████████████\n".green(),
+            "        ████████████████████\n".green(),
+            "        ████████      ██████\n".cyan(),
+            "        ████████      ██████\n".cyan(),
+            "        ████████      ██████\n".purple(),
+            "        ████████      ██████\n".purple(),
+            "        ████████████████████\n".green(),
+            "         ██████████████████\n".green(),
+        ),
+        _ => format!(
+            "{}{}{}{}{}{}",
+            "         _____\n".yellow(),
+            "       /  ___|\n".yellow(),
+            "       \\ `--.\n".yellow(),
+            "        `--. \\\n".yellow(),
+            "       /\\__/ /\n".yellow(),
+            "       \\____/\n".yellow(),
+        ),
+    }
+}
+
+fn main() {
+    // Initialize system information
+    let mut sys = System::new_all();
+    sys.refresh_all();
+
+    // Fetch the OS name and print the corresponding logo
+    let os_name = sys.name().unwrap_or("Unknown".to_string());
+    println!("{}", get_os_logo(&os_name));
+
+    // Print basic system information
+    println!("{}     {}", "OS:".bold().blue(), os_name);
+    println!("{}  {}", "Kernel:".bold().blue(), sys.kernel_version().unwrap_or("Unknown".to_string()));
+    println!("{}     {}", "Host:".bold().blue(), sys.host_name().unwrap_or("Unknown".to_string()));
+    println!("{}     {}", "Uptime:".bold().blue(), format!("{} seconds", sys.uptime()));
+
+    // Get CPU information
+    if let Some(cpu) = sys.cpus().first() {
+        println!("{}      {} @ {} MHz", "CPU:".bold().blue(), cpu.brand(), cpu.frequency());
+    }
+
+    // Memory information
+    println!("{}   {} / {} MB", 
+        "Memory:".bold().blue(), 
+        sys.used_memory() / 1024, 
+        sys.total_memory() / 1024
+    );
+
+    // Disk information
+    for disk in sys.disks() {
+        println!("{} {} ({}): {} / {} GB", 
+            "Disk:".bold().blue(),
+            disk.name().to_string_lossy(), 
+            disk.mount_point().to_string_lossy(),
+            disk.available_space() / (1024 * 1024 * 1024),
+            disk.total_space() / (1024 * 1024 * 1024)
+        );
+    }
+
+    // Show system load average
+    let load_avg = sys.load_average();
+    println!("{} {:.2} {:.2} {:.2}", 
+        "Load Avg:".bold().blue(), 
+        load_avg.one, 
+        load_avg.five, 
+        load_avg.fifteen
+    );
+}
